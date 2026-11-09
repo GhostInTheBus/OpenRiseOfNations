@@ -118,7 +118,7 @@ void fill_slots(Game& g, Slots& s, int32_t ux, int32_t uy, int32_t r, bool pathi
 
 // CollCheck::collide_here @682540.
 int32_t collide_here(Game& g, const Unit& u, int32_t ux, int32_t uy, int32_t r, int32_t* hx, int32_t* hy, bool pathing) {
-	if (r == 0) return 0;
+	if (r <= 0) return 0;
 	r = std::min(r, 10);  // the compass spiral has radius 10 (stock new_block_radius is 0..7)
 	Slots s;
 	fill_slots(g, s, ux, uy, r, pathing);

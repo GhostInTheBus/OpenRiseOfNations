@@ -26,6 +26,7 @@ struct SymType {
 	int index = -1;              // +0xc
 	U16 token;                   // +0x10
 	bool dont_delete = false;
+	bool implicit_decl = false;  // 2003 dialect: "x = e" declares x for the whole script body
 	// VarType
 	int scope_modifier = 0;
 	// TriggerType: declaration line; TriggerToggle: the resolved trigger and the enable flag

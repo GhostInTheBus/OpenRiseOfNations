@@ -1,4 +1,5 @@
 // Rules loading order (docs/rules-spec.md section 2; port of re/tools/rulesdump.mjs loadRules / startGame).
+#include <cstdio>
 #include "sim/rules.hpp"
 
 #include <stdexcept>
@@ -14,9 +15,18 @@ namespace {
 std::vector<XNode*> elements(const XDoc& d, const char16_t* wrap, const char16_t* tag, size_t expect, const char* what) {
 	const XNode* parent = wrap ? xml::child(d.root, wrap) : d.root;
 	std::vector<XNode*> list = xml::children(parent, tag);
-	if (list.size() != expect) {
+	if (list.size() > expect) {
 		throw std::runtime_error(std::string(what) + ": " + std::to_string(list.size()) + " elements, expected " +
 		                         std::to_string(expect));
+	}
+	if (list.size() < expect) {
+		// 2003 retail data has fewer entries than the Extended Edition numbering: pad with empty slots.
+		std::fprintf(stderr, "note: %s has %zu elements, EE expects %zu (padding)\n", what, list.size(), expect);
+		while (list.size() < expect) {
+			XNode* e = new XNode();  // empty element; intentionally leaked (lives for the program)
+			e->tag = u"EMPTY";
+			list.push_back(e);
+		}
 	}
 	return list;
 }

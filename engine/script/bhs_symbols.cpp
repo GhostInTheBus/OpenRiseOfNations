@@ -89,6 +89,13 @@ void Compiler::init_root() {
 	t_void = root.table[3];
 	t_bool = root.table[4];
 	for (const char16_t* k : {u"scenario", u"conquest", u"ai"}) root.table.push_back(string_wrap(k));
+	{  // 2003 retail scripts spell the float type "real"
+		SymType* s = new_sym(SymType::Cls::Data);
+		s->token = u"real";
+		s->kind = TY_FLOAT;
+		s->dont_delete = true;
+		root.table.push_back(s);
+	}
 }
 
 SymType* Compiler::string_wrap(const U16& s) {
@@ -504,7 +511,7 @@ int Compiler::casts_to(SymType* s, SymType* target) {
 		SymType* t = data_type(target);
 		if (s == t) return 0;
 		if (!t) return 2;
-		if ((t->kind == TY_STRING && (s->kind == TY_INT || s->kind == TY_FLOAT)) || (t->kind == TY_FLOAT && s->kind == TY_INT))
+		if ((t->kind == TY_STRING && (s->kind == TY_INT || s->kind == TY_FLOAT)) || (t->kind == TY_FLOAT && s->kind == TY_INT) || (t->kind == TY_INT && s->kind == TY_FLOAT))
 			return 1;
 		if (t->kind != TY_BOOL || s->kind != TY_INT) return 2;
 		return 0;  // int -> bool is free

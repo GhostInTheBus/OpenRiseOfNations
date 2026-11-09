@@ -975,7 +975,7 @@ void install_mutation_funcs(ScriptHost& h) {
 		clear_agree(g, b, a);
 		if (b == g.local_play) {  // Leader::chat_to_local
 			ScriptEvent& e = push_event(g, ScriptEvent::kChat);
-			e.text = bhs::to_utf8(c.arg_str(4)) + " " + std::to_string(c.arg_int(3)) + " " +
+			e.text = bhs::to_utf8(c.arg_str(4)) + " " + bhs::to_utf8(c.arg_str(3)) + " " +
 			         bhs::to_utf8(g.type(k).display_name);
 			e.who = a;
 		}

@@ -192,9 +192,10 @@ void load_categories(Loader& L) {
 void load_tribes(Loader& L) {
 	const XDoc rules = read_game_xml(L.files, "rules.xml", L.opts.lang_suffix);
 	const std::vector<XNode*> els = xml::children(xml::child(rules.root, u"TRIBES", true), u"TRIBE", true);
-	if (els.size() != size_t(kNumTribes)) throw std::runtime_error("Number of tribes in rules.xml does not equal NUM_TRIBES");
+	// 2003 retail data has 18 nations (Thrones and Patriots added the other 6): fill the first N, leave the rest empty.
+	if (els.size() > size_t(kNumTribes)) throw std::runtime_error("Number of tribes in rules.xml exceeds NUM_TRIBES");
 	L.r.tribes.assign(kNumTribes, Tribe());
-	for (int i = 0; i < kNumTribes; ++i) {
+	for (int i = 0; i < int(els.size()); ++i) {
 		Tribe& t = L.r.tribes[size_t(i)];
 		t.eng_name = trim_right_spaces(xml::get_text(els[size_t(i)], u"KEY"));
 		t.file = trim_right_spaces(u"TRIBES\\" + xml::get_text(els[size_t(i)], u"FILE"));

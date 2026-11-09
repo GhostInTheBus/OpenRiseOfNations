@@ -145,7 +145,7 @@ int32_t find_collision(Game& g, int32_t x, int32_t y, int32_t o, int32_t who, in
 	if (!me) return 0;
 	const int32_t r = me->ptype->new_block_radius;
 	if (p5 == 0 && me->ptype->domain == 0) return collide_here(g, *me, ucoord_of(x), ucoord_of(y), r, nullptr, nullptr, false);
-	if (r == 0) return 0;
+	if (r <= 0) return 0;
 	const World& w = g.world;
 	const int32_t wx = wcoord_of(x), wy = wcoord_of(y), ux = ucoord_of(x), uy = ucoord_of(y);
 	for (int i = 0; i < 9; i++) {

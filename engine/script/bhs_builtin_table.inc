@@ -695,7 +695,7 @@
 {"ScenarioFuncSet", "diplomacy_enable_war", "int", "int who_enabling; int who_enabled"},
 {"ScenarioFuncSet", "add_visibility", "int", "int who; int who_target"},
 {"ScenarioFuncSet", "remove_visibility", "int", "int who; int who_target"},
-{"ScenarioFuncSet", "make_counter_offer", "int", "int who_initial_offer; int who_counter_offer; string res_type; int num_amount; string message"},
+{"ScenarioFuncSet", "make_counter_offer", "int", "int who_initial_offer; int who_counter_offer; string res_type; string num_amount; string message"},
 {"ScenarioFuncSet", "ctw_clear_offer", "int", "ConquestDiploOffer offer[ref]"},
 {"ScenarioFuncSet", "offer_made", "int", "int who_who_asker; int who_askee"},
 {"ScenarioFuncSet", "offer_accepted", "int", "int who_who_asker; int who_askee"},

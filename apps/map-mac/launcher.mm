@@ -110,7 +110,10 @@ static NSString* find_in_install(NSString* dir, NSString* rel) {
 std::vector<Entry> entries_for(Mode m, NSString* dir) {
 	std::vector<Entry> out;
 	auto add = [&](const char* title, const char* detail, NSString* rel) {
-		if (NSString* p = find_in_install(dir, rel)) out.push_back({title, detail, p.UTF8String});
+		NSString* p = find_in_install(dir, rel);
+		// The 2003 retail disc names its scenarios .sce; the Extended Edition uses .scx.
+		if (!p && [rel.pathExtension isEqualToString:@"scx"]) p = find_in_install(dir, [[rel stringByDeletingPathExtension] stringByAppendingPathExtension:@"sce"]);
+		if (p) out.push_back({title, detail, p.UTF8String});
 	};
 	if (m == Mode::Tutorials) {
 		add("Tutorial 1: Getting Around", "Select and move units, scroll and zoom the map.", @"scenario/Tutorial1/tut1.scx");
@@ -140,7 +143,7 @@ std::vector<Entry> entries_for(Mode m, NSString* dir) {
 			NSString* root = [dir stringByAppendingPathComponent:conquest];
 			NSMutableArray<NSString*>* maps = [NSMutableArray array];
 			for (NSString* rel in [NSFileManager.defaultManager enumeratorAtPath:root]) {
-				if ([rel.pathExtension caseInsensitiveCompare:@"scx"] == NSOrderedSame) [maps addObject:rel];
+				if ([rel.pathExtension caseInsensitiveCompare:@"scx"] == NSOrderedSame || [rel.pathExtension caseInsensitiveCompare:@"sce"] == NSOrderedSame) [maps addObject:rel];
 			}
 			[maps sortUsingSelector:@selector(caseInsensitiveCompare:)];
 			for (NSString* rel in maps) {

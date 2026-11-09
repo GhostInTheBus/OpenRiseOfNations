@@ -203,6 +203,8 @@ int Compiler::script_accepts_params(SymType* fn, std::vector<Node*>& args) {
 		if (p && p->scope_modifier == kScopeRef) {
 			if (r != 0) return 2;
 			if (!args[i]->sym || args[i]->sym->kind != K_VAR) return 2;
+		} else if (p && p->implicit_decl) {
+			// 2003 dialect: untyped parameters take any argument
 		} else {
 			if (r == 2) return 2;
 			if (r == 1) conv = true;
@@ -772,6 +774,7 @@ void Compiler::eval(Node* n) {
 		Node* init = ch(0);
 		if (v->of_type == t_void) {
 			v->of_type = data_type(init->sym);
+			v->implicit_decl = true;
 			if (v->of_type == t_void) comp_error("Can't determine the type of \"" + to_utf8(v->token) + "\"");
 		} else if (!auto_cast(init->sym, v, &init->opcode)) {
 			comp_error("Can't convert \"" + to_utf8(get_name(init->sym)) + "\" to \"" + to_utf8(get_name(v->of_type)) + "\"");
@@ -830,12 +833,12 @@ void Compiler::eval(Node* n) {
 			n->opcode = init;
 		}
 		n->sym = d->sym;
-		curr_table->table.push_back(d->sym);
+		((d->sym->implicit_decl && cur && cur->script_table) ? cur->script_table : curr_table)->table.push_back(d->sym);
 		return;
 	}
 
 	case N_PARAM_DECL: {  // INIT_COPY p (INIT for ref)
-		if (n->sym->of_type == t_void) n->sym->of_type = t_int;
+		if (n->sym->of_type == t_void) { n->sym->of_type = t_int; n->sym->implicit_decl = true; }
 		n->opcode = get_new(curr_scope == kScopeRef ? OP_INIT : OP_INIT_COPY, sym_arg(n->sym));
 		if (n->sym->kind != K_VAR) comp_error("Parameter is not a variable");
 		curr_table->table.push_back(n->sym);

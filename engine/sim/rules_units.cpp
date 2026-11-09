@@ -44,7 +44,7 @@ Type& Loader::alloc(int i) {
 int Loader::key(int lo, int hi, const ustr& s) const {
 	for (int i = lo; i < hi; ++i) {
 		const Type& o = r.types[size_t(i)];
-		if (o.loaded && iequals(s, o.type_name)) return i;
+		if (o.loaded && !o.type_name.empty() && iequals(s, o.type_name)) return i;
 	}
 	if (iequals(s, u"none")) return TYPE_NONE;
 	if (iequals(s, u"disable")) return TYPE_ANY_BUILDING;

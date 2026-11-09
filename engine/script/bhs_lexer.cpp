@@ -3,6 +3,8 @@
 // files (Lexer::start_include_file @9c1960, open_file @9bff30, close_file @9bfe20) and identifier classification
 // against the live symbol tables (Lexer::resolve_token @9c1460). Only "\r\n" is a line break.
 #include <cstring>
+#include <regex>
+#include <set>
 
 #include "assets/chunk.hpp"
 #include "script/bhs_compiler_internal.hpp"
@@ -41,6 +43,46 @@ const Keyword kKeywords[] = {
     {"enable_trigger", T_ENABLE_TRIGGER}, {"disable_trigger", T_DISABLE_TRIGGER}, {"labels", T_LABELS},
 };
 
+
+// 2003 retail scripts call scripts that are defined further down the same file; this compiler resolves a call only
+// when the head was already seen. Prepend forward declarations (`head ;`) for every head in the file on the first
+// line so line numbers stay put.
+void add_forward_declarations(Bytes& data) {
+	std::string text(data.begin(), data.end());
+	for (size_t q = 0; (q = text.find("(real)", q)) != std::string::npos;) text.replace(q, 6, "(float)");
+	static const std::regex head(R"(^[ \t]*((?:(?:int|float|real|string|void|bool)[ \t]+)?(?:scenario|conquest|ai)[ \t]+[A-Za-z_][A-Za-z0-9_]*[ \t]*\([^)\n]*\))[ \t]*\r?$)", std::regex::icase);
+	std::set<std::string> seen;
+	std::string decls;
+	bool in_block_comment = false;
+	size_t pos = 0;
+	while (pos < text.size()) {
+		size_t e = text.find('\n', pos);
+		if (e == std::string::npos) e = text.size();
+		std::string line = text.substr(pos, e - pos);
+		pos = e + 1;
+		if (in_block_comment) {
+			if (line.find("*/") != std::string::npos) in_block_comment = false;
+			continue;
+		}
+		const size_t b = line.find_first_not_of(" \t");
+		if (b == std::string::npos) continue;
+		if (line.compare(b, 2, "//") == 0) continue;
+		if (line.compare(b, 2, "/*") == 0) {
+			if (line.find("*/", b + 2) == std::string::npos) in_block_comment = true;
+			continue;
+		}
+		std::string l2 = line;
+		// a head may end the line, or be followed by '{'
+		const size_t brace = l2.find('{');
+		if (brace != std::string::npos) l2 = l2.substr(0, brace);
+		std::smatch m;
+		if (std::regex_match(l2, m, head) && seen.insert(m[1].str()).second) decls += m[1].str() + "; ";
+	}
+	data.assign(text.begin(), text.end());
+	if (decls.empty()) return;
+	data.insert(data.begin(), decls.begin(), decls.end());
+}
+
 std::string directory_of(const std::string& p) {
 	const size_t s = p.find_last_of("\\/");
 	return s == std::string::npos ? std::string() : p.substr(0, s + 1);
@@ -55,6 +97,7 @@ FileEntry* Compiler::new_file_entry(const std::string& input_string, const std::
 	fe->input_string = input_string;
 	fe->abs_path = abs;
 	fe->data = read_file(abs);
+	add_forward_declarations(fe->data);
 	return fe;
 }
 

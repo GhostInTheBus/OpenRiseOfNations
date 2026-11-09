@@ -1,3 +1,4 @@
+#include <cstdio>
 // Per-frame unit movement (docs/movement-spec.md sections 3.5, 4, 5, 9.1, 10.5; docs/orders-spec.md section 6):
 // Unit::do_move and the move-order handlers built on it, the straight-line check find_path with its building detours
 // (go_around_building), move_step (one frame of motion) and the unit speeds.
@@ -435,6 +436,11 @@ int32_t move_step(Game& g, Unit& u, Order& m, int32_t speed) {
 	unit_set_angle(g, u, a, false);
 
 	// Heading of guy 0 after this frame's turn (hn) and the turn still left (rem).
+	if (u.guys.empty()) {  // 2003 data: a unit type with no squad model
+		static int warned = 0;
+		if (warned++ < 5) std::fprintf(stderr, "warning: unit type %d (%s) has no guys; skipping move step\n", int(u.type), to_utf8(u.ptype->name).c_str());
+		return 0;
+	}
 	uint32_t h = u.guys[0].angle;
 	const uint32_t d = a - h;
 	uint32_t rem = d > 0x80000000u ? ~d : d;

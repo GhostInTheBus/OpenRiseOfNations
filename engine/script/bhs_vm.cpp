@@ -333,7 +333,11 @@ VP Runtime::get_value(Frame& f, uint32_t operand) {
 	} else if (operand & kStaticFlag) {
 		const size_t k = operand & ~kStaticFlag;
 		if (k < f.script->static_vars.size()) return f.script->static_vars[k];
-	} else if (operand < f.vars.size()) {
+	} else if (operand < f.vars.size() && f.vars[operand]) {
+		return f.vars[operand];
+	} else if (operand <= 0xfffff) {  // 2003 dialect: script-wide implicit locals read before assignment are 0
+		if (f.vars.size() <= operand) f.vars.resize(size_t(operand) + 1);
+		f.vars[operand] = make_int(0, SC_VAR);
 		return f.vars[operand];
 	}
 	run_time_error("Variable not initialized");
